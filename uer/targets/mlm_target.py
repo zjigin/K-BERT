@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
-import math
 import torch
 import torch.nn as nn
+
 from uer.layers.layer_norm import LayerNorm
 from uer.utils.act_fun import gelu
 
@@ -11,6 +11,7 @@ class MlmTarget(nn.Module):
     BERT exploits masked language modeling (MLM) 
     and next sentence prediction (NSP) for pretraining.
     """
+
     def __init__(self, args, vocab_size):
         super(MlmTarget, self).__init__()
         self.vocab_size = vocab_size
@@ -30,14 +31,14 @@ class MlmTarget(nn.Module):
         output_mlm = self.layer_norm(output_mlm)
         output_mlm = output_mlm.contiguous().view(-1, self.hidden_size)
         tgt_mlm = tgt_mlm.contiguous().view(-1)
-        output_mlm = output_mlm[tgt_mlm>0,:]
-        tgt_mlm = tgt_mlm[tgt_mlm>0]
+        output_mlm = output_mlm[tgt_mlm > 0, :]
+        tgt_mlm = tgt_mlm[tgt_mlm > 0]
         output_mlm = self.mlm_linear_2(output_mlm)
         output_mlm = self.softmax(output_mlm)
 
-        one_hot = torch.zeros(output_mlm.size(0),  self.vocab_size). \
-           to(torch.device(output_mlm.device)). \
-           scatter_(1, tgt_mlm.contiguous().view(-1,1), 1.0)
+        one_hot = torch.zeros(output_mlm.size(0), self.vocab_size). \
+            to(torch.device(output_mlm.device)). \
+            scatter_(1, tgt_mlm.contiguous().view(-1, 1), 1.0)
         numerator = -torch.sum(output_mlm * one_hot, 1)
         denominator = torch.tensor(output_mlm.size(0) + 1e-6)
         loss_mlm = torch.sum(numerator) / denominator
@@ -45,7 +46,7 @@ class MlmTarget(nn.Module):
             correct_mlm = torch.tensor(0.0)
         else:
             correct_mlm = torch.sum((output_mlm.argmax(dim=-1).eq(tgt_mlm)).float())
-        
+
         return loss_mlm, correct_mlm, denominator
 
     def forward(self, memory_bank, tgt):

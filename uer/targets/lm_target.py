@@ -1,14 +1,12 @@
 # -*- encoding:utf-8 -*-
-import math
 import torch
 import torch.nn as nn
-from uer.layers.layer_norm import LayerNorm
-from uer.utils.act_fun import gelu
 
 
 class LmTarget(nn.Module):
     """
     """
+
     def __init__(self, args, vocab_size):
         super(LmTarget, self).__init__()
         self.vocab_size = vocab_size
@@ -35,11 +33,11 @@ class LmTarget(nn.Module):
         # Full probability distribution.
         output = self.softmax(output)
 
-        tgt = tgt.contiguous().view(-1,1)
+        tgt = tgt.contiguous().view(-1, 1)
         label_mask = (tgt > 0).float().to(torch.device(output.device))
-        one_hot = torch.zeros(label_mask.size(0),  self.vocab_size). \
-           to(torch.device(output.device)). \
-           scatter_(1, tgt, 1.0)
+        one_hot = torch.zeros(label_mask.size(0), self.vocab_size). \
+            to(torch.device(output.device)). \
+            scatter_(1, tgt, 1.0)
 
         numerator = -torch.sum(output * one_hot, 1)
         label_mask = label_mask.contiguous().view(-1)

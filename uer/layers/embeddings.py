@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 import torch
 import torch.nn as nn
+
 from uer.layers.layer_norm import LayerNorm
 
 
@@ -9,6 +10,7 @@ class BertEmbedding(nn.Module):
     BERT embedding consists of three parts:
     word embedding, position embedding, and segment embedding.
     """
+
     def __init__(self, args, vocab_size):
         super(BertEmbedding, self).__init__()
         self.dropout = nn.Dropout(args.dropout)
@@ -21,8 +23,9 @@ class BertEmbedding(nn.Module):
     def forward(self, src, seg, pos=None):
         word_emb = self.word_embedding(src)
         if pos is None:
-            pos_emb = self.position_embedding(torch.arange(0, word_emb.size(1), device=word_emb.device, \
-                                            dtype=torch.long).unsqueeze(0).repeat(word_emb.size(0), 1))
+            pos_emb = self.position_embedding(
+                torch.arange(0, word_emb.size(1), device=word_emb.device, dtype=torch.long).unsqueeze(0).repeat(
+                    word_emb.size(0), 1))
         else:
             pos_emb = self.position_embedding(pos)
         seg_emb = self.segment_embedding(seg)
@@ -30,4 +33,3 @@ class BertEmbedding(nn.Module):
         emb = word_emb + pos_emb + seg_emb
         emb = self.dropout(self.layer_norm(emb))
         return emb
-

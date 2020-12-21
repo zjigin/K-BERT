@@ -1,25 +1,22 @@
 # -*- encoding:utf-8 -*-
 """
-  This script provides an k-BERT exmaple for classification.
+  This script provides an k-BERT example for classification.
 """
-import sys
-import torch
-import json
-import random
 import argparse
-import collections
+import random
+import sys
+from multiprocessing import Pool
+
+import torch
 import torch.nn as nn
-from uer.utils.vocab import Vocab
-from uer.utils.constants import *
-from uer.utils.tokenizer import * 
-from uer.model_builder import build_model
-from uer.utils.optimizers import  BertAdam
-from uer.utils.config import load_hyperparam
-from uer.utils.seed import set_seed
-from uer.model_saver import save_model
+
 from brain import KnowledgeGraph
-from multiprocessing import Process, Pool
-import numpy as np
+from uer.model_builder import build_model
+from uer.model_saver import save_model
+from uer.utils.config import load_hyperparam
+from uer.utils.optimizers import BertAdam
+from uer.utils.seed import set_seed
+from uer.utils.tokenizer import *
 
 
 class BertClassifier(nn.Module):
@@ -42,6 +39,8 @@ class BertClassifier(nn.Module):
             src: [batch_size x seq_length]
             label: [batch_size]
             mask: [batch_size x seq_length]
+            pos: none
+            vm: none
         """
         # Embedding.
         emb = self.embedding(src, mask, pos)

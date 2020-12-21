@@ -1,14 +1,12 @@
 # -*- encoding:utf-8 -*-
-import math
 import torch
 import torch.nn as nn
-from uer.layers.layer_norm import LayerNorm
-from uer.utils.act_fun import gelu
 
 
 class S2sTarget(nn.Module):
     """
     """
+
     def __init__(self, args, vocab_size):
         super(S2sTarget, self).__init__()
         self.vocab_size = vocab_size
@@ -21,10 +19,10 @@ class S2sTarget(nn.Module):
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, memory_bank, tgt):
-
-        emb = self.embedding_layer(tgt[:, :]) # bactch_size, seq_length, emb_size
+        emb = self.embedding_layer(tgt[:, :])  # batch_size, seq_length, emb_size
         output = []
-        hidden_state = (memory_bank[:,-1,:].unsqueeze(0).contiguous(), memory_bank[:,-1,:].unsqueeze(0).contiguous())
+        hidden_state = (
+            memory_bank[:, -1, :].unsqueeze(0).contiguous(), memory_bank[:, -1, :].unsqueeze(0).contiguous())
         for i, emb_i in enumerate(emb.split(1, dim=1)):
             output_i, hidden_state = self.decoder(emb_i, hidden_state)
             output.append(self.output_layer(output_i))
@@ -34,11 +32,11 @@ class S2sTarget(nn.Module):
         output = output.contiguous().view(-1, self.vocab_size)
         output = self.softmax(output)
 
-        tgt = tgt.contiguous().view(-1,1)
+        tgt = tgt.contiguous().view(-1, 1)
         label_mask = (tgt > 0).float().to(torch.device(output.device))
-        one_hot = torch.zeros(label_mask.size(0),  self.vocab_size). \
-           to(torch.device(output.device)). \
-           scatter_(1, tgt, 1.0)
+        one_hot = torch.zeros(label_mask.size(0), self.vocab_size). \
+            to(torch.device(output.device)). \
+            scatter_(1, tgt, 1.0)
 
         numerator = -torch.sum(output * one_hot, 1)
         label_mask = label_mask.contiguous().view(-1)

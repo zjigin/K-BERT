@@ -1,8 +1,6 @@
 # -*- encoding:utf-8 -*-
 import torch.nn as nn
-from uer.layers.layer_norm import LayerNorm
-from uer.layers.position_ffn import PositionwiseFeedForward
-from uer.layers.multi_headed_attn import MultiHeadedAttention
+
 from uer.layers.transformer import TransformerLayer
 
 
@@ -32,10 +30,7 @@ class BertEncoder(nn.Module):
         # Generate mask according to segment indicators.
         # mask: [batch_size x 1 x seq_length x seq_length]
         if vm is None:
-            mask = (seg > 0). \
-                    unsqueeze(1). \
-                    repeat(1, seq_length, 1). \
-                    unsqueeze(1)
+            mask = (seg > 0).unsqueeze(1).repeat(1, seq_length, 1).unsqueeze(1)
             mask = mask.float()
             mask = (1.0 - mask) * -10000.0
         else:

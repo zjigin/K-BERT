@@ -1,9 +1,7 @@
 # -*- encoding:utf-8 -*-
 import torch
 import torch.nn as nn
-from uer.layers.layer_norm import LayerNorm
-from uer.layers.position_ffn import PositionwiseFeedForward
-from uer.layers.multi_headed_attn import MultiHeadedAttention
+
 from uer.layers.transformer import TransformerLayer
 
 

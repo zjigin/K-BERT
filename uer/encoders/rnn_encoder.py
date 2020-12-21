@@ -9,11 +9,11 @@ class LstmEncoder(nn.Module):
 
         self.bidirectional = args.bidirectional
         if self.bidirectional:
-            assert args.hidden_size % 2 == 0 
-            self.hidden_size= args.hidden_size // 2
+            assert args.hidden_size % 2 == 0
+            self.hidden_size = args.hidden_size // 2
         else:
-            self.hidden_size= args.hidden_size
-        
+            self.hidden_size = args.hidden_size
+
         self.layers_num = args.layers_num
 
         self.rnn = nn.LSTM(input_size=args.emb_size,
@@ -25,16 +25,16 @@ class LstmEncoder(nn.Module):
 
         self.drop = nn.Dropout(args.dropout)
 
-    def forward(self, emb, seg):
+    def forward(self, emb):
         hidden = self.init_hidden(emb.size(0), emb.device)
-        output, hidden = self.rnn(emb, hidden) 
-        output = self.drop(output) 
+        output, hidden = self.rnn(emb, hidden)
+        output = self.drop(output)
         return output
 
     def init_hidden(self, batch_size, device):
         if self.bidirectional:
-            return (torch.zeros(self.layers_num*2, batch_size, self.hidden_size, device=device),
-                    torch.zeros(self.layers_num*2, batch_size, self.hidden_size, device=device))
+            return (torch.zeros(self.layers_num * 2, batch_size, self.hidden_size, device=device),
+                    torch.zeros(self.layers_num * 2, batch_size, self.hidden_size, device=device))
         else:
             return (torch.zeros(self.layers_num, batch_size, self.hidden_size, device=device),
                     torch.zeros(self.layers_num, batch_size, self.hidden_size, device=device))
@@ -46,30 +46,30 @@ class GruEncoder(nn.Module):
 
         self.bidirectional = args.bidirectional
         if self.bidirectional:
-            assert args.hidden_size % 2 == 0 
-            self.hidden_size= args.hidden_size // 2
+            assert args.hidden_size % 2 == 0
+            self.hidden_size = args.hidden_size // 2
         else:
-            self.hidden_size= args.hidden_size
+            self.hidden_size = args.hidden_size
 
         self.layers_num = args.layers_num
 
         self.rnn = nn.GRU(input_size=args.emb_size,
-                           hidden_size=self.hidden_size,
-                           num_layers=args.layers_num,
-                           dropout=args.dropout,
-                           batch_first=True,
-                           bidirectional=self.bidirectional)
+                          hidden_size=self.hidden_size,
+                          num_layers=args.layers_num,
+                          dropout=args.dropout,
+                          batch_first=True,
+                          bidirectional=self.bidirectional)
 
         self.drop = nn.Dropout(args.dropout)
 
-    def forward(self, emb, seg):
+    def forward(self, emb):
         hidden = self.init_hidden(emb.size(0), emb.device)
-        output, hidden = self.rnn(emb, hidden) 
-        output = self.drop(output) 
+        output, hidden = self.rnn(emb, hidden)
+        output = self.drop(output)
         return output
 
     def init_hidden(self, batch_size, device):
         if self.bidirectional:
-            return torch.zeros(self.layers_num*2, batch_size, self.hidden_size, device=device)
+            return torch.zeros(self.layers_num * 2, batch_size, self.hidden_size, device=device)
         else:
             return torch.zeros(self.layers_num, batch_size, self.hidden_size, device=device)
