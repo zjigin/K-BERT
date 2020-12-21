@@ -2,7 +2,6 @@
 """
 KnowledgeGraph
 """
-import os
 import brain.config as config
 import pkuseg
 import numpy as np
@@ -28,7 +27,7 @@ class KnowledgeGraph(object):
             with open(spo_path, 'r', encoding='utf-8') as f:
                 for line in f:
                     try:
-                        subj, pred, obje = line.strip().split("\t")    
+                        subj, pred, obje = line.strip().split("\t")
                     except:
                         print("[KnowledgeGraph] Bad spo:", line)
                     if self.predicate:
@@ -38,10 +37,10 @@ class KnowledgeGraph(object):
                     if subj in lookup_table.keys():
                         lookup_table[subj].add(value)
                     else:
-                        lookup_table[subj] = set([value])
+                        lookup_table[subj] = {value}
         return lookup_table
 
-    def add_knowledge_with_vm(self, sent_batch, max_entities=config.MAX_ENTITIES, add_pad=True, max_length=128):
+    def add_knowledge_with_vm(self, sent_batch, max_entities=config.MAX_ENTITIES, max_length=128):
         """
         input: sent_batch - list of sentences, e.g., ["abcd", "efgh"]
         return: know_sent_batch - list of sentences with entites embedding
@@ -69,19 +68,19 @@ class KnowledgeGraph(object):
                 sent_tree.append((token, entities))
 
                 if token in self.special_tags:
-                    token_pos_idx = [pos_idx+1]
-                    token_abs_idx = [abs_idx+1]
+                    token_pos_idx = [pos_idx + 1]
+                    token_abs_idx = [abs_idx + 1]
                 else:
-                    token_pos_idx = [pos_idx+i for i in range(1, len(token)+1)]
-                    token_abs_idx = [abs_idx+i for i in range(1, len(token)+1)]
+                    token_pos_idx = [pos_idx + i for i in range(1, len(token) + 1)]
+                    token_abs_idx = [abs_idx + i for i in range(1, len(token) + 1)]
                 abs_idx = token_abs_idx[-1]
 
                 entities_pos_idx = []
                 entities_abs_idx = []
                 for ent in entities:
-                    ent_pos_idx = [token_pos_idx[-1] + i for i in range(1, len(ent)+1)]
+                    ent_pos_idx = [token_pos_idx[-1] + i for i in range(1, len(ent) + 1)]
                     entities_pos_idx.append(ent_pos_idx)
-                    ent_abs_idx = [abs_idx + i for i in range(1, len(ent)+1)]
+                    ent_abs_idx = [abs_idx + i for i in range(1, len(ent) + 1)]
                     abs_idx = ent_abs_idx[-1]
                     entities_abs_idx.append(ent_abs_idx)
 
@@ -101,7 +100,7 @@ class KnowledgeGraph(object):
                     seg += [0]
                 else:
                     add_word = list(word)
-                    know_sent += add_word 
+                    know_sent += add_word
                     seg += [0] * len(add_word)
                 pos += pos_idx_tree[i][0]
                 for j in range(len(sent_tree[i][1])):
@@ -116,13 +115,13 @@ class KnowledgeGraph(object):
             visible_matrix = np.zeros((token_num, token_num))
             for item in abs_idx_tree:
                 src_ids = item[0]
-                for id in src_ids:
+                for src_id in src_ids:
                     visible_abs_idx = abs_idx_src + [idx for ent in item[1] for idx in ent]
-                    visible_matrix[id, visible_abs_idx] = 1
+                    visible_matrix[src_id, visible_abs_idx] = 1
                 for ent in item[1]:
-                    for id in ent:
+                    for src_id in ent:
                         visible_abs_idx = ent + src_ids
-                        visible_matrix[id, visible_abs_idx] = 1
+                        visible_matrix[src_id, visible_abs_idx] = 1
 
             src_length = len(know_sent)
             if len(know_sent) < max_length:
@@ -136,11 +135,10 @@ class KnowledgeGraph(object):
                 seg = seg[:max_length]
                 pos = pos[:max_length]
                 visible_matrix = visible_matrix[:max_length, :max_length]
-            
+
             know_sent_batch.append(know_sent)
             position_batch.append(pos)
             visible_matrix_batch.append(visible_matrix)
             seg_batch.append(seg)
-        
-        return know_sent_batch, position_batch, visible_matrix_batch, seg_batch
 
+        return know_sent_batch, position_batch, visible_matrix_batch, seg_batch
